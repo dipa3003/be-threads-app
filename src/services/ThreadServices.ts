@@ -9,7 +9,11 @@ export default new (class ThreadServices {
 
     async find(req: Request, res: Response): Promise<Response> {
         try {
-            const threads = await this.ThreadRepository.find();
+            const threads = await this.ThreadRepository.find({
+                relations: {
+                    user: true,
+                },
+            });
             return res.status(200).json({ message: "success", threads: threads });
         } catch (error) {
             console.log(error);
@@ -20,7 +24,14 @@ export default new (class ThreadServices {
     async findOne(req: Request, res: Response): Promise<Response> {
         try {
             const id = Number(req.params.id);
-            const data = await this.ThreadRepository.findOneBy({ id: id });
+            const data = await this.ThreadRepository.findOne({
+                where: {
+                    id: id,
+                },
+                relations: {
+                    user: true,
+                },
+            });
 
             return res.status(200).json({ message: "success", data });
         } catch (error) {
