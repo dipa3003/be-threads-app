@@ -3,6 +3,8 @@ import { AppDataSource } from "../data-source";
 import { Thread } from "../entity/Thread";
 import { Request, Response } from "express";
 import { CreateThreadSchema } from "../utils/validator/ThreadValidator";
+import cloudinary from "../libs/cloudinary";
+import deleteTempFile from "../utils/delateFile/delateTempFile";
 
 export default new (class ThreadServices {
     private readonly ThreadRepository: Repository<Thread> = AppDataSource.getRepository(Thread);
@@ -31,14 +33,20 @@ export default new (class ThreadServices {
     async findOne(req: Request, res: Response): Promise<Response> {
         try {
             const id = Number(req.params.id);
-            const data = await this.ThreadRepository.findOne({
-                where: {
-                    id: id,
-                },
-                relations: {
-                    user: true,
-                },
-            });
+            // const data = await this.ThreadRepository.findOne({
+            //     where: {
+            //         id: id,
+            //     },
+            //     relations: {
+            //         user: true,
+            //     },
+            // });
+            const data = await this.ThreadRepository.createQueryBuilder("thread")
+                .leftJoinAndSelect("thread.user", "user")
+                .leftJoinAndSelect("thread.likes", "likes")
+                .loadRelationCountAndMap("thread.likes_count", "thread.likes")
+                .where("thread.id = :id", { id })
+                .getOne();
 
             return res.status(200).json({ message: "success", data });
         } catch (error) {
@@ -53,14 +61,16 @@ export default new (class ThreadServices {
             data.userId = res.locals.loginSession.user.id;
             data.image = res.locals.filename;
 
-            console.log("image session:", data.image);
             const { error, value } = CreateThreadSchema.validate(data);
-            console.log("value validator:", value);
+            if (error) return res.status(400).json({ message: error.message });
+
+            const cloudinaryImg = await cloudinary.destination(value.image);
+            await deleteTempFile();
 
             const newData = {
                 content: value.content,
                 user: value.userId,
-                image: value.image,
+                image: cloudinaryImg,
                 created_at: new Date(),
             };
 
@@ -103,7 +113,11 @@ export default new (class ThreadServices {
     async delete(req: Request, res: Response): Promise<Response> {
         try {
             const id = Number(req.params.id);
+            const findThread = await this.ThreadRepository.findOneBy({ id });
+            await cloudinary.delete(findThread.image);
+
             const response = await this.ThreadRepository.delete(id);
+
             return res.status(200).json({ message: "success", response });
         } catch (error) {
             console.log(error);

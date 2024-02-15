@@ -13,13 +13,11 @@ export default new (class Auth {
 
             try {
                 const jwtPayload = jwt.verify(token, "jwtsecretkey");
-                console.log("jwtpayload:", jwtPayload);
                 res.locals.loginSession = jwtPayload;
                 next();
             } catch (error) {
                 return res.status(401).json({ message: "Token verification failed" });
             }
-            console.log(token);
         } catch (error) {
             console.log(error);
             return res.status(401).json({ message: "Token verification failed!" });

@@ -23,13 +23,17 @@ export default new (class LikeServices {
             const userId = res.locals.loginSession.user.id;
             console.log("data", data);
 
-            const isLiked = await this.LikeRepository.findOne({
-                where: {
-                    user: userId,
-                    thread: Equal(data.threadId),
-                },
-            });
-            console.log("isLiked:", isLiked);
+            // const isLiked = await this.LikeRepository.findOne({
+            //     where: {
+            //         user: userId,
+            //         thread: Equal(data.threadId),
+            //     },
+            // });
+
+            // USING QUERYBUILDER
+            const isLiked = await this.LikeRepository.createQueryBuilder("like").where("like.user = :userId", { userId }).andWhere("like.thread = :threadId", { threadId: data.threadId }).getOne();
+
+            console.log("isLiked using queryBuilder:", isLiked);
 
             if (isLiked) {
                 const unLiked = await this.LikeRepository.delete(isLiked.id);
@@ -55,7 +59,6 @@ export default new (class LikeServices {
         try {
             const id = Number(req.params.id);
             const userId = res.locals.loginSession.user.id;
-            console.log("userId:", userId);
 
             const liked = await this.LikeRepository.findOne({
                 where: {

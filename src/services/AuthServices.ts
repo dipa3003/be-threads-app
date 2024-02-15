@@ -12,7 +12,6 @@ export default new (class AuthServices {
     async register(req: Request, res: Response): Promise<Response> {
         try {
             const data = req.body;
-            console.log("data register", data);
 
             const checkUser = await this.AuthRepository.existsBy({ username: data.username });
             if (checkUser) return res.status(400).json({ message: `${data.username} has already register` });
@@ -48,8 +47,6 @@ export default new (class AuthServices {
 
             const isLogin = await this.AuthRepository.findOneBy({ username: value.username });
             if (!isLogin) return res.status(400).json({ message: "Incorrect username, try again...", response: isLogin });
-
-            console.log("isLogin:", isLogin);
 
             const checkPassword = await bcrypt.compare(value.password, isLogin.password);
             if (!checkPassword) return res.status(400).json({ message: "Incorrect password, try again..." });
