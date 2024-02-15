@@ -9,11 +9,18 @@ export default new (class ThreadServices {
 
     async find(req: Request, res: Response): Promise<Response> {
         try {
-            const threads = await this.ThreadRepository.find({
-                relations: {
-                    user: true,
-                },
-            });
+            // const threads = await this.ThreadRepository.find({
+            //     relations: {
+            //         user: true,
+            //         likes: true,
+            //     },
+            // });
+            const threads = await this.ThreadRepository.createQueryBuilder("thread")
+                .leftJoinAndSelect("thread.user", "users")
+                .leftJoinAndSelect("thread.likes", "likes")
+                .loadRelationCountAndMap("thread.likes_count", "thread.likes")
+                .getMany();
+
             return res.status(200).json({ message: "success", threads: threads });
         } catch (error) {
             console.log(error);
