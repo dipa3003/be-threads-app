@@ -12,7 +12,7 @@ export default new (class Auth {
             const token = Authorization.split(" ")[1];
 
             try {
-                const jwtPayload = jwt.verify(token, "jwtsecretkey");
+                const jwtPayload = jwt.verify(token, process.env.SECRET_KEY_JWT);
                 res.locals.loginSession = jwtPayload;
                 next();
             } catch (error) {

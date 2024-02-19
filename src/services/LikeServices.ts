@@ -1,8 +1,7 @@
-import { Equal, Repository } from "typeorm";
+import { Repository } from "typeorm";
 import { Like } from "../entity/Like";
 import { AppDataSource } from "../data-source";
 import { Request, Response } from "express";
-import { threadId } from "worker_threads";
 
 export default new (class LikeServices {
     private readonly LikeRepository: Repository<Like> = AppDataSource.getRepository(Like);
@@ -23,14 +22,6 @@ export default new (class LikeServices {
             const userId = res.locals.loginSession.user.id;
             console.log("data", data);
 
-            // const isLiked = await this.LikeRepository.findOne({
-            //     where: {
-            //         user: userId,
-            //         thread: Equal(data.threadId),
-            //     },
-            // });
-
-            // USING QUERYBUILDER
             const isLiked = await this.LikeRepository.createQueryBuilder("like").where("like.user = :userId", { userId }).andWhere("like.thread = :threadId", { threadId: data.threadId }).getOne();
 
             console.log("isLiked using queryBuilder:", isLiked);
@@ -39,9 +30,6 @@ export default new (class LikeServices {
                 const unLiked = await this.LikeRepository.delete(isLiked.id);
                 return res.status(200).json({ message: "success unlike a thread", unLiked });
             }
-
-            // const isLiked = await this.LikeRepository.findOneBy({ thread: Equal(22), user: Equal(5) });
-            // console.log("isLiked:", isLiked);
 
             const dataLike = {
                 created_at: new Date(),
@@ -76,7 +64,7 @@ export default new (class LikeServices {
 
             const response = await this.LikeRepository.delete(liked.id);
 
-            return res.status(200).json({ message: "success delete like" });
+            return res.status(200).json({ message: "success delete like", response });
         } catch (error) {
             console.log(error);
         }

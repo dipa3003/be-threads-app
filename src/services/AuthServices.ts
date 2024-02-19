@@ -5,6 +5,8 @@ import { Request, Response } from "express";
 import { CreateLoginSchema, CreateRegisterSchema } from "../utils/validator/AuthValidator";
 import * as bcrypt from "bcrypt";
 import * as jwt from "jsonwebtoken";
+import cloudinary from "../libs/cloudinary";
+import deleteTempFile from "../utils/delateFile/delateTempFile";
 
 export default new (class AuthServices {
     private readonly AuthRepository: Repository<User> = AppDataSource.getRepository(User);
@@ -21,13 +23,16 @@ export default new (class AuthServices {
 
             const encryptedPassword = await bcrypt.hash(value.password, 10);
 
+            const cloudinaryPicture = await cloudinary.destination(value.profile_pic);
+            await deleteTempFile();
+
             const user = {
                 username: value.username,
                 full_name: value.full_name,
                 email: value.email,
                 password: encryptedPassword,
                 bio: value.bio,
-                profile_pic: value.profile_pic,
+                profile_pic: cloudinaryPicture,
             };
             await this.AuthRepository.insert(user);
 
@@ -57,12 +62,24 @@ export default new (class AuthServices {
                 id: isLogin.id,
             });
 
-            const token = jwt.sign({ user }, "jwtsecretkey", { expiresIn: "1h" });
+            const token = jwt.sign({ user }, process.env.SECRET_KEY_JWT, { expiresIn: "1h" });
 
             return res.status(200).json({ message: "success login", user, token });
         } catch (error) {
             console.log(error);
             return res.status(500).json({ message: "Oops...Something error while login" });
+        }
+    }
+
+    async check(req: Request, res: Response): Promise<Response> {
+        try {
+            const userLogin = res.locals.loginSession.user.id;
+            const user = await this.AuthRepository.findOneBy({ id: userLogin });
+
+            return res.status(200).json({ message: "success check user", user });
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ message: "Oops...Something error while check auth" });
         }
     }
 })();

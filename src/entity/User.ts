@@ -20,10 +20,10 @@ export class User {
     @Column()
     password: string;
 
-    @Column()
+    @Column({ nullable: true })
     bio: string;
 
-    @Column()
+    @Column({ nullable: true })
     profile_pic: string;
 
     @OneToMany(() => Thread, (thread) => thread.user, {

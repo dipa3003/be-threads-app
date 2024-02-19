@@ -3,11 +3,12 @@ import * as express from "express";
 import * as cors from "cors";
 import router from "./route";
 import cloudinary from "./libs/cloudinary";
+import "dotenv/config";
 
 AppDataSource.initialize()
     .then(async () => {
         const app = express();
-        const PORT = 5000;
+        const PORT = process.env.PORT;
 
         app.use(cors());
         app.use(express.json());

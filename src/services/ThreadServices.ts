@@ -11,19 +11,15 @@ export default new (class ThreadServices {
 
     async find(req: Request, res: Response): Promise<Response> {
         try {
-            // const threads = await this.ThreadRepository.find({
-            //     relations: {
-            //         user: true,
-            //         likes: true,
-            //     },
-            // });
             const threads = await this.ThreadRepository.createQueryBuilder("thread")
                 .leftJoinAndSelect("thread.user", "users")
                 .leftJoinAndSelect("thread.likes", "likes")
+                .leftJoinAndSelect("thread.replies", "replies")
                 .loadRelationCountAndMap("thread.likes_count", "thread.likes")
+                .loadRelationCountAndMap("thread.replies_count", "thread.replies")
                 .getMany();
 
-            return res.status(200).json({ message: "success", threads: threads });
+            return res.status(200).json(threads);
         } catch (error) {
             console.log(error);
             return res.status(404).json({ message: "Error while find all threads", error });
@@ -33,14 +29,7 @@ export default new (class ThreadServices {
     async findOne(req: Request, res: Response): Promise<Response> {
         try {
             const id = Number(req.params.id);
-            // const data = await this.ThreadRepository.findOne({
-            //     where: {
-            //         id: id,
-            //     },
-            //     relations: {
-            //         user: true,
-            //     },
-            // });
+
             const data = await this.ThreadRepository.createQueryBuilder("thread")
                 .leftJoinAndSelect("thread.user", "user")
                 .leftJoinAndSelect("thread.likes", "likes")

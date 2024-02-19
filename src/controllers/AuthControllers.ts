@@ -8,4 +8,7 @@ export default new (class AuthControllers {
     login(req: Request, res: Response) {
         AuthServices.login(req, res);
     }
+    check(req: Request, res: Response) {
+        AuthServices.check(req, res);
+    }
 })();

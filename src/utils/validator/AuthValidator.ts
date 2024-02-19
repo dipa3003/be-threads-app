@@ -5,7 +5,7 @@ export const CreateRegisterSchema = Joi.object({
     full_name: Joi.string().required(),
     email: Joi.string().required(),
     password: Joi.string().required(),
-    bio: Joi.string().required(),
+    bio: Joi.string(),
     profile_pic: Joi.string(),
 });
 
