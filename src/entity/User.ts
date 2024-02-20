@@ -1,7 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToMany, JoinTable, ManyToOne } from "typeorm";
 import { Thread } from "./Thread";
 import { Like } from "./Like";
 import { Reply } from "./Reply";
+import { Follow } from "./Follow";
 
 @Entity({ name: "users" })
 export class User {
@@ -24,7 +25,7 @@ export class User {
     bio: string;
 
     @Column({ nullable: true })
-    profile_pic: string;
+    image: string;
 
     @OneToMany(() => Thread, (thread) => thread.user, {
         onDelete: "CASCADE",
@@ -43,4 +44,10 @@ export class User {
         onUpdate: "CASCADE",
     })
     replies: Reply[];
+
+    @OneToMany(() => Follow, (follow) => follow.following)
+    following: Follow[];
+
+    @OneToMany(() => Follow, (follow) => follow.follower)
+    follower: Follow[];
 }

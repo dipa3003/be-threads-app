@@ -17,6 +17,7 @@ export default new (class ThreadServices {
                 .leftJoinAndSelect("thread.replies", "replies")
                 .loadRelationCountAndMap("thread.likes_count", "thread.likes")
                 .loadRelationCountAndMap("thread.replies_count", "thread.replies")
+                .orderBy("thread.id", "DESC")
                 .getMany();
 
             return res.status(200).json(threads);
@@ -33,7 +34,9 @@ export default new (class ThreadServices {
             const data = await this.ThreadRepository.createQueryBuilder("thread")
                 .leftJoinAndSelect("thread.user", "user")
                 .leftJoinAndSelect("thread.likes", "likes")
+                .leftJoinAndSelect("thread.replies", "replies")
                 .loadRelationCountAndMap("thread.likes_count", "thread.likes")
+                .loadRelationCountAndMap("thread.replies_count", "thread.replies")
                 .where("thread.id = :id", { id })
                 .getOne();
 

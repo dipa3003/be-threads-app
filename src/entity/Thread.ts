@@ -17,9 +17,6 @@ export class Thread {
     @Column()
     image: string;
 
-    @Column({ nullable: true })
-    likes_count: number;
-
     @ManyToOne(() => User, (user) => user.threads, {
         onDelete: "CASCADE",
         onUpdate: "CASCADE",

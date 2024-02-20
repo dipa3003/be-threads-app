@@ -24,11 +24,12 @@ router.delete("/likes/:id", Auth.Authentication, LikeControllers.delete);
 router.get("/reply", ReplyControllers.find);
 router.post("/reply/add", Auth.Authentication, UploadFile.upload("image"), ReplyControllers.create);
 
-router.post("/follow", FollowControllers.create);
+router.post("/follow/:id", Auth.Authentication, multer.any(), FollowControllers.create);
 
-router.get("/user/:id", UserControllers.findOne);
+router.get("/users/:id", UserControllers.findOne);
+router.get("/users", UserControllers.find);
 
-router.post("/register", multer.any(), AuthControllers.register);
+router.post("/register", UploadFile.upload("image"), AuthControllers.register);
 router.post("/login", multer.any(), AuthControllers.login);
 router.get("/check", Auth.Authentication, AuthControllers.check);
 

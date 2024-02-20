@@ -6,7 +6,7 @@ export const CreateRegisterSchema = Joi.object({
     email: Joi.string().required(),
     password: Joi.string().required(),
     bio: Joi.string(),
-    profile_pic: Joi.string(),
+    image: Joi.string(),
 });
 
 export const CreateLoginSchema = Joi.object({

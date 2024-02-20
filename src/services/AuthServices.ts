@@ -14,6 +14,7 @@ export default new (class AuthServices {
     async register(req: Request, res: Response): Promise<Response> {
         try {
             const data = req.body;
+            data.image = res.locals.filename;
 
             const checkUser = await this.AuthRepository.existsBy({ username: data.username });
             if (checkUser) return res.status(400).json({ message: `${data.username} has already register` });
@@ -21,9 +22,12 @@ export default new (class AuthServices {
             const { value, error } = CreateRegisterSchema.validate(data);
             if (error) return res.status(400).json({ message: error.message });
 
+            console.log("value:", value);
+
             const encryptedPassword = await bcrypt.hash(value.password, 10);
 
-            const cloudinaryPicture = await cloudinary.destination(value.profile_pic);
+            const cloudinaryPicture = await cloudinary.destination(value.image);
+            console.log("cloudinaryPicture:", cloudinaryPicture);
             await deleteTempFile();
 
             const user = {
@@ -32,7 +36,7 @@ export default new (class AuthServices {
                 email: value.email,
                 password: encryptedPassword,
                 bio: value.bio,
-                profile_pic: cloudinaryPicture,
+                image: cloudinaryPicture,
             };
             await this.AuthRepository.insert(user);
 
