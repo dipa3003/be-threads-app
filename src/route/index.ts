@@ -24,7 +24,9 @@ router.delete("/likes/:id", Auth.Authentication, LikeControllers.delete);
 router.get("/reply", ReplyControllers.find);
 router.post("/reply/add", Auth.Authentication, UploadFile.upload("image"), ReplyControllers.create);
 
-router.post("/follow/:id", Auth.Authentication, multer.any(), FollowControllers.create);
+router.post("/follow/:id", Auth.Authentication, multer.any(), FollowControllers.follow);
+router.get("/follow/:id", Auth.Authentication, multer.any(), FollowControllers.follow);
+router.get("/follow", Auth.Authentication, multer.any(), FollowControllers.follow);
 
 router.get("/users/:id", UserControllers.findOne);
 router.get("/users", UserControllers.find);

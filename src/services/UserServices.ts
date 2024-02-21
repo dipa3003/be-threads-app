@@ -9,6 +9,7 @@ export default new (class UserServices {
     async find(req: Request, res: Response): Promise<Response> {
         try {
             const users = await this.UserRepository.createQueryBuilder("user")
+                .select(["user.id", "user.username", "user.full_name", "user.email", "user.bio", "user.image"])
                 .leftJoinAndSelect("user.follower", "follower")
                 .leftJoinAndSelect("user.following", "following")
                 .loadRelationCountAndMap("user.following_count", "user.following")
@@ -27,6 +28,7 @@ export default new (class UserServices {
             const userId = Number(req.params.id);
 
             const user = await this.UserRepository.createQueryBuilder("user")
+                .select(["user.id", "user.username", "user.full_name", "user.email", "user.bio", "user.image"])
                 .leftJoinAndSelect("user.follower", "follower")
                 .leftJoinAndSelect("user.following", "following")
                 .loadRelationCountAndMap("user.following_count", "user.following")

@@ -8,13 +8,13 @@ export class Thread {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
+    @Column({ nullable: true })
     content: string;
 
     @Column()
     created_at: Date;
 
-    @Column()
+    @Column({ nullable: true })
     image: string;
 
     @ManyToOne(() => User, (user) => user.threads, {
@@ -29,6 +29,9 @@ export class Thread {
     })
     likes: Like[];
 
-    @OneToMany(() => Reply, (reply) => reply.thread)
+    @OneToMany(() => Reply, (reply) => reply.thread, {
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+    })
     replies: Reply[];
 }

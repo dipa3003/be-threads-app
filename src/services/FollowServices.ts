@@ -1,4 +1,4 @@
-import { Equal, Repository } from "typeorm";
+import { Repository } from "typeorm";
 import { AppDataSource } from "../data-source";
 import { Follow } from "../entity/Follow";
 import { Request, Response } from "express";
@@ -6,9 +6,11 @@ import { Request, Response } from "express";
 export default new (class FollowServices {
     private readonly FollowRepository: Repository<Follow> = AppDataSource.getRepository(Follow);
 
-    async create(req: Request, res: Response): Promise<Response> {
+    async follow(req: Request, res: Response): Promise<Response> {
         try {
             const id_to_follow = req.params.id;
+            console.log("id_from_query:", id_to_follow);
+
             const userId = res.locals.loginSession.user.id;
 
             const checkUser = await this.FollowRepository.createQueryBuilder("follow").where("follow.following = :followingId", { followingId: userId }).andWhere("follow.follower = :followerId", { followerId: id_to_follow }).getOne();

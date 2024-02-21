@@ -25,9 +25,7 @@ export default new (class AuthServices {
             console.log("value:", value);
 
             const encryptedPassword = await bcrypt.hash(value.password, 10);
-
             const cloudinaryPicture = await cloudinary.destination(value.image);
-            console.log("cloudinaryPicture:", cloudinaryPicture);
             await deleteTempFile();
 
             const user = {

@@ -12,9 +12,8 @@ export default new (class ThreadServices {
     async find(req: Request, res: Response): Promise<Response> {
         try {
             const threads = await this.ThreadRepository.createQueryBuilder("thread")
-                .leftJoinAndSelect("thread.user", "users")
-                .leftJoinAndSelect("thread.likes", "likes")
-                .leftJoinAndSelect("thread.replies", "replies")
+                .leftJoin("thread.user", "user")
+                .addSelect(["user.id", "user.username", "user.full_name", "user.email", "user.bio", "user.image"])
                 .loadRelationCountAndMap("thread.likes_count", "thread.likes")
                 .loadRelationCountAndMap("thread.replies_count", "thread.replies")
                 .orderBy("thread.id", "DESC")
@@ -31,8 +30,9 @@ export default new (class ThreadServices {
         try {
             const id = Number(req.params.id);
 
-            const data = await this.ThreadRepository.createQueryBuilder("thread")
-                .leftJoinAndSelect("thread.user", "user")
+            const thread = await this.ThreadRepository.createQueryBuilder("thread")
+                .leftJoin("thread.user", "user")
+                .addSelect(["user.id", "user.username", "user.full_name", "user.email", "user.bio", "user.image"])
                 .leftJoinAndSelect("thread.likes", "likes")
                 .leftJoinAndSelect("thread.replies", "replies")
                 .loadRelationCountAndMap("thread.likes_count", "thread.likes")
@@ -40,7 +40,7 @@ export default new (class ThreadServices {
                 .where("thread.id = :id", { id })
                 .getOne();
 
-            return res.status(200).json({ message: "success", data });
+            return res.status(200).json(thread);
         } catch (error) {
             console.log(error);
             return res.status(404).json({ message: "Error while find a threads", error });
