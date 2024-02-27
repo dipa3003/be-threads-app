@@ -2,6 +2,10 @@ import { Repository } from "typeorm";
 import { User } from "../entity/User";
 import { AppDataSource } from "../data-source";
 import { Request, Response } from "express";
+import { CreateRegisterSchema } from "../utils/validator/AuthValidator";
+import cloudinary from "../libs/cloudinary";
+import deleteTempFile from "../utils/delateFile/delateTempFile";
+import * as bcrypt from "bcrypt";
 
 export default new (class UserServices {
     private readonly UserRepository: Repository<User> = AppDataSource.getRepository(User);
@@ -16,7 +20,7 @@ export default new (class UserServices {
                 .loadRelationCountAndMap("user.follower_count", "user.follower")
                 .getMany();
 
-            return res.status(200).json({ message: "success find all users", users });
+            return res.status(200).json(users);
         } catch (error) {
             console.log(error);
             return res.status(404).json({ message: "Error while find all user", error });
@@ -41,6 +45,44 @@ export default new (class UserServices {
             return res.status(200).json(user);
         } catch (error) {
             console.log(error);
+        }
+    }
+
+    async update(req: Request, res: Response): Promise<Response> {
+        try {
+            const userId = res.locals.loginSession.user.id;
+            const data = req.body;
+            data.image = res.locals.filename;
+
+            // const checkUser = await this.UserRepository.existsBy({ id: userId });
+            // if (checkUser) return res.status(400).json({ message: `${data.username} has already register` });
+
+            const { value, error } = CreateRegisterSchema.validate(data);
+            if (error) return res.status(400).json({ message: error.message });
+
+            console.log("value update user:", value);
+
+            //find old data for input field in fe
+            const old_data_user = await this.UserRepository.findOneBy({ id: userId });
+
+            // const encryptedPassword = await bcrypt.hash(value.password, 10);
+            // const cloudinaryPicture = await cloudinary.destination(value.image);
+            // await deleteTempFile();
+
+            const user = {
+                username: value.username,
+                // full_name: value.full_name,
+                // email: value.email,
+                // password: encryptedPassword,
+                bio: value.bio,
+                // image: cloudinaryPicture,
+            };
+            await this.UserRepository.insert(user);
+
+            return res.status(201).json({ message: `Welcome ${user.username}` });
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ message: "Oops...Something error while update user" });
         }
     }
 })();

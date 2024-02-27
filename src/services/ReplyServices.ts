@@ -11,12 +11,41 @@ export default new (class ReplyServices {
 
     async find(req: Request, res: Response): Promise<Response> {
         try {
-            const replies = await this.ReplyRepository.createQueryBuilder("reply").leftJoinAndSelect("reply.user", "user").leftJoinAndSelect("reply.thread", "thread").getMany();
+            const replies = await this.ReplyRepository.createQueryBuilder("reply")
+                .leftJoin("reply.user", "user")
+                .addSelect(["user.id", "user.username", "user.full_name", "user.email", "user.bio", "user.image"])
+                .leftJoinAndSelect("reply.thread", "thread")
+                .getMany();
 
-            return res.status(200).json({ message: "success find all reply", replies });
+            return res.status(200).json(replies);
         } catch (error) {
             console.log(error);
             return res.status(404).json({ message: "Error while find all reply", error });
+        }
+    }
+
+    async findOne(req: Request, res: Response): Promise<Response> {
+        try {
+            const id = Number(req.params.id);
+            const reply = await this.ReplyRepository.findOne({
+                where: { id: id },
+                relations: ["thread", "user"],
+                select: {
+                    thread: {
+                        id: true,
+                        content: true,
+                    },
+                    user: {
+                        id: true,
+                        full_name: true,
+                        email: true,
+                    },
+                },
+            });
+            return res.status(200).json(reply);
+        } catch (error) {
+            console.log(error);
+            return res.status(404).json({ message: "Error while find all reply for detail thread", error });
         }
     }
 

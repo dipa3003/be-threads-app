@@ -35,6 +35,8 @@ export default new (class ThreadServices {
                 .addSelect(["user.id", "user.username", "user.full_name", "user.email", "user.bio", "user.image"])
                 .leftJoinAndSelect("thread.likes", "likes")
                 .leftJoinAndSelect("thread.replies", "replies")
+                .leftJoin("replies.user", "userreplies")
+                .addSelect(["userreplies.id", "userreplies.username", "userreplies.full_name"])
                 .loadRelationCountAndMap("thread.likes_count", "thread.likes")
                 .loadRelationCountAndMap("thread.replies_count", "thread.replies")
                 .where("thread.id = :id", { id })

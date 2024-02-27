@@ -22,6 +22,7 @@ router.post("/likes/add", Auth.Authentication, multer.any(), LikeControllers.cre
 router.delete("/likes/:id", Auth.Authentication, LikeControllers.delete);
 
 router.get("/reply", ReplyControllers.find);
+router.get("/reply/:id", ReplyControllers.findOne);
 router.post("/reply/add", Auth.Authentication, UploadFile.upload("image"), ReplyControllers.create);
 
 router.post("/follow/:id", Auth.Authentication, multer.any(), FollowControllers.follow);
@@ -30,6 +31,7 @@ router.get("/follow", Auth.Authentication, multer.any(), FollowControllers.follo
 
 router.get("/users/:id", UserControllers.findOne);
 router.get("/users", UserControllers.find);
+router.patch("/users/:id", Auth.Authentication, UserControllers.create);
 
 router.post("/register", UploadFile.upload("image"), AuthControllers.register);
 router.post("/login", multer.any(), AuthControllers.login);
