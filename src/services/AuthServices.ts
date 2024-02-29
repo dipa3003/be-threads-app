@@ -22,8 +22,6 @@ export default new (class AuthServices {
             const { value, error } = CreateRegisterSchema.validate(data);
             if (error) return res.status(400).json({ message: error.message });
 
-            console.log("value:", value);
-
             const encryptedPassword = await bcrypt.hash(value.password, 10);
             const cloudinaryPicture = await cloudinary.destination(value.image);
             await deleteTempFile();

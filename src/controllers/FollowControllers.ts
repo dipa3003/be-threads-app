@@ -5,4 +5,7 @@ export default new (class FollowControllers {
     follow(req: Request, res: Response) {
         FollowServices.follow(req, res);
     }
+    getFollow(req: Request, res: Response) {
+        FollowServices.getFollow(req, res);
+    }
 })();

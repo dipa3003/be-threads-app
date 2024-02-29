@@ -9,25 +9,42 @@ export default new (class FollowServices {
     async follow(req: Request, res: Response): Promise<Response> {
         try {
             const id_to_follow = req.params.id;
-            console.log("id_from_query:", id_to_follow);
-
             const userId = res.locals.loginSession.user.id;
 
-            const checkUser = await this.FollowRepository.createQueryBuilder("follow").where("follow.following = :followingId", { followingId: userId }).andWhere("follow.follower = :followerId", { followerId: id_to_follow }).getOne();
+            const checkUser = await this.FollowRepository.createQueryBuilder("follow").where("follow.following = :followingId", { followingId: id_to_follow }).andWhere("follow.follower = :followerId", { followerId: userId }).getOne();
 
-            if (checkUser) return res.status(400).json({ message: "user has been followed", data: checkUser });
+            if (checkUser) {
+                const response = await this.FollowRepository.delete({ id: checkUser.id });
+
+                return res.status(200).json({ message: "success Unfollow", response });
+            }
 
             if (id_to_follow == userId) return res.status(400).json({ message: "Can not follow your account, try another user" });
 
             const response = await this.FollowRepository.createQueryBuilder("follow")
                 .insert()
-                .values({ follower: () => id_to_follow, following: () => userId, created_at: new Date() })
+                .values({ following: () => id_to_follow, follower: () => userId, created_at: new Date() })
                 .execute();
 
             return res.status(200).json({ message: "success follow a user", id_to_follow, userId, response });
         } catch (error) {
             console.log(error);
             return res.status(404).json({ message: "Error while follow a user", error });
+        }
+    }
+
+    async getFollow(req: Request, res: Response): Promise<Response> {
+        try {
+            const userId = req.query.userId;
+
+            const follower = await this.FollowRepository.createQueryBuilder("follow").leftJoinAndSelect("follow.follower", "follower").where("follow.following= :id", { id: userId }).getMany();
+
+            const following = await this.FollowRepository.createQueryBuilder("follow").leftJoinAndSelect("follow.following", "following").where("follow.follower= :id", { id: userId }).getMany();
+
+            return res.status(200).json({ follower, following });
+        } catch (error) {
+            console.log(error);
+            return res.status(404).json({ message: "Error while getFollow users", error });
         }
     }
 })();

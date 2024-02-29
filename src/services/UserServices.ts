@@ -18,6 +18,8 @@ export default new (class UserServices {
                 .leftJoinAndSelect("user.following", "following")
                 .loadRelationCountAndMap("user.following_count", "user.following")
                 .loadRelationCountAndMap("user.follower_count", "user.follower")
+                .take(5)
+                .orderBy("user.id", "DESC")
                 .getMany();
 
             return res.status(200).json(users);
@@ -33,14 +35,12 @@ export default new (class UserServices {
 
             const user = await this.UserRepository.createQueryBuilder("user")
                 .select(["user.id", "user.username", "user.full_name", "user.email", "user.bio", "user.image"])
-                .leftJoinAndSelect("user.follower", "follower")
-                .leftJoinAndSelect("user.following", "following")
-                .loadRelationCountAndMap("user.following_count", "user.following")
-                .loadRelationCountAndMap("user.follower_count", "user.follower")
+                .leftJoinAndSelect("user.following", "follower")
+                .leftJoinAndSelect("user.follower", "following")
+                .loadRelationCountAndMap("user.following_count", "user.follower")
+                .loadRelationCountAndMap("user.follower_count", "user.following")
                 .where("user.id= :id", { id: userId })
                 .getOne();
-
-            // const response = await this.UserRepository.findOneBy({ id: userId });
 
             return res.status(200).json(user);
         } catch (error) {

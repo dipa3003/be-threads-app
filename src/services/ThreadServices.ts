@@ -5,21 +5,41 @@ import { Request, Response } from "express";
 import { CreateThreadSchema } from "../utils/validator/ThreadValidator";
 import cloudinary from "../libs/cloudinary";
 import deleteTempFile from "../utils/delateFile/delateTempFile";
+import LikeServices from "./LikeServices";
 
 export default new (class ThreadServices {
     private readonly ThreadRepository: Repository<Thread> = AppDataSource.getRepository(Thread);
 
     async find(req: Request, res: Response): Promise<Response> {
         try {
+            const userId = Number(req.params.id);
+
             const threads = await this.ThreadRepository.createQueryBuilder("thread")
                 .leftJoin("thread.user", "user")
                 .addSelect(["user.id", "user.username", "user.full_name", "user.email", "user.bio", "user.image"])
-                .loadRelationCountAndMap("thread.likes_count", "thread.likes")
-                .loadRelationCountAndMap("thread.replies_count", "thread.replies")
+                .leftJoinAndSelect("thread.likes", "likes")
+                .leftJoinAndSelect("thread.replies", "replies")
                 .orderBy("thread.id", "DESC")
                 .getMany();
 
-            return res.status(200).json(threads);
+            const response = threads.map(async (thread) => await LikeServices.isLikedUser(userId, thread.id));
+            const likedByUser = await Promise.all(response);
+
+            let dataThreads = [];
+            for (let i = 0; i < threads.length; i++) {
+                dataThreads.push({
+                    id: threads[i].id,
+                    content: threads[i].content,
+                    created_at: threads[i].created_at,
+                    image: threads[i].image,
+                    user: threads[i].user,
+                    likes_count: threads[i].likes.length,
+                    replies_count: threads[i].replies.length,
+                    isLiked: likedByUser[i],
+                });
+            }
+
+            return res.status(200).json(dataThreads);
         } catch (error) {
             console.log(error);
             return res.status(404).json({ message: "Error while find all threads", error });

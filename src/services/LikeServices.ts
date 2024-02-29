@@ -16,15 +16,19 @@ export default new (class LikeServices {
             console.log(error);
         }
     }
+
+    async isLikedUser(userId: number, threadId: number) {
+        const isLiked = await this.LikeRepository.createQueryBuilder("like").where("like.user= :user", { user: userId }).andWhere("like.thread= :thread", { thread: threadId }).getOne();
+
+        return !!isLiked;
+    }
+
     async create(req: Request, res: Response): Promise<Response> {
         try {
             const data = req.body;
             const userId = res.locals.loginSession.user.id;
-            console.log("data", data);
 
             const isLiked = await this.LikeRepository.createQueryBuilder("like").where("like.user = :userId", { userId }).andWhere("like.thread = :threadId", { threadId: data.threadId }).getOne();
-
-            console.log("isLiked using queryBuilder:", isLiked);
 
             if (isLiked) {
                 const unLiked = await this.LikeRepository.delete(isLiked.id);

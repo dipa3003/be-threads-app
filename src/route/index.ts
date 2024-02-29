@@ -11,8 +11,8 @@ import FollowControllers from "../controllers/FollowControllers";
 const multer = require("multer")();
 const router = express.Router();
 
-router.get("/threads", ThreadControllers.find);
-router.get("/threads/:id", ThreadControllers.findOne);
+router.get("/threads/:id", multer.any(), ThreadControllers.find);
+router.get("/thread/:id", ThreadControllers.findOne);
 router.post("/threads/add", Auth.Authentication, UploadFile.upload("image"), ThreadControllers.create);
 router.patch("/threads/:id", Auth.Authentication, multer.any(), ThreadControllers.update);
 router.delete("/threads/:id", Auth.Authentication, ThreadControllers.delete);
@@ -26,8 +26,8 @@ router.get("/reply/:id", ReplyControllers.findOne);
 router.post("/reply/add", Auth.Authentication, UploadFile.upload("image"), ReplyControllers.create);
 
 router.post("/follow/:id", Auth.Authentication, multer.any(), FollowControllers.follow);
-router.get("/follow/:id", Auth.Authentication, multer.any(), FollowControllers.follow);
-router.get("/follow", Auth.Authentication, multer.any(), FollowControllers.follow);
+// router.get("/follow/:id", Auth.Authentication, multer.any(), FollowControllers.follow);
+router.get("/follow", multer.any(), FollowControllers.getFollow);
 
 router.get("/users/:id", UserControllers.findOne);
 router.get("/users", UserControllers.find);
