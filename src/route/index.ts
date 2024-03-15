@@ -12,7 +12,8 @@ const multer = require("multer")();
 const router = express.Router();
 
 router.get("/threads/:id", multer.any(), ThreadControllers.find);
-router.get("/thread/:id", ThreadControllers.findOne);
+router.get("/thread/:id", ThreadControllers.findOne); //id thread
+router.get("/threadsByUser", ThreadControllers.findUser);
 router.post("/threads/add", Auth.Authentication, UploadFile.upload("image"), ThreadControllers.create);
 router.patch("/threads/:id", Auth.Authentication, multer.any(), ThreadControllers.update);
 router.delete("/threads/:id", Auth.Authentication, ThreadControllers.delete);
@@ -29,9 +30,9 @@ router.post("/follow/:id", Auth.Authentication, multer.any(), FollowControllers.
 // router.get("/follow/:id", Auth.Authentication, multer.any(), FollowControllers.follow);
 router.get("/follow", multer.any(), FollowControllers.getFollow);
 
-router.get("/users/:id", UserControllers.findOne);
 router.get("/users", UserControllers.find);
-router.patch("/users/:id", Auth.Authentication, UserControllers.create);
+router.get("/users/:id", UserControllers.findOne);
+router.patch("/users", Auth.Authentication, UploadFile.upload("image"), UserControllers.update);
 
 router.post("/register", UploadFile.upload("image"), AuthControllers.register);
 router.post("/login", multer.any(), AuthControllers.login);

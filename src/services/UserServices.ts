@@ -2,10 +2,10 @@ import { Repository } from "typeorm";
 import { User } from "../entity/User";
 import { AppDataSource } from "../data-source";
 import { Request, Response } from "express";
-import { CreateRegisterSchema } from "../utils/validator/AuthValidator";
 import cloudinary from "../libs/cloudinary";
 import deleteTempFile from "../utils/delateFile/delateTempFile";
 import * as bcrypt from "bcrypt";
+import { CreateUpdateUserSchema } from "../utils/validator/UserValidator";
 
 export default new (class UserServices {
     private readonly UserRepository: Repository<User> = AppDataSource.getRepository(User);
@@ -57,7 +57,7 @@ export default new (class UserServices {
             // const checkUser = await this.UserRepository.existsBy({ id: userId });
             // if (checkUser) return res.status(400).json({ message: `${data.username} has already register` });
 
-            const { value, error } = CreateRegisterSchema.validate(data);
+            const { value, error } = CreateUpdateUserSchema.validate(data);
             if (error) return res.status(400).json({ message: error.message });
 
             console.log("value update user:", value);
@@ -65,21 +65,31 @@ export default new (class UserServices {
             //find old data for input field in fe
             const old_data_user = await this.UserRepository.findOneBy({ id: userId });
 
-            // const encryptedPassword = await bcrypt.hash(value.password, 10);
-            // const cloudinaryPicture = await cloudinary.destination(value.image);
-            // await deleteTempFile();
+            if (data.full_name != "") {
+                old_data_user.full_name = value.full_name;
+            }
+            if (data.username != "") {
+                old_data_user.username = value.username;
+            }
+            if (data.email != "") {
+                old_data_user.email = value.email;
+            }
+            if (data.password != "") {
+                // const encryptedPassword = await bcrypt.hash(value.password, 10);
+                old_data_user.password = value.password;
+            }
+            if (data.bio != "") {
+                old_data_user.bio = value.bio;
+            }
+            if (data.image != "") {
+                const cloudinaryPicture = await cloudinary.destination(value.image);
+                await deleteTempFile();
+                old_data_user.image = cloudinaryPicture;
+            }
 
-            const user = {
-                username: value.username,
-                // full_name: value.full_name,
-                // email: value.email,
-                // password: encryptedPassword,
-                bio: value.bio,
-                // image: cloudinaryPicture,
-            };
-            await this.UserRepository.insert(user);
+            const response = await this.UserRepository.save(old_data_user);
 
-            return res.status(201).json({ message: `Welcome ${user.username}` });
+            return res.status(201).json({ response });
         } catch (error) {
             console.log(error);
             return res.status(500).json({ message: "Oops...Something error while update user" });

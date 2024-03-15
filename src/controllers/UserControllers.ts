@@ -8,7 +8,10 @@ export default new (class UserControllers {
     findOne(req: Request, res: Response) {
         UserServices.findOne(req, res);
     }
-    create(req: Request, res: Response) {
+    update(req: Request, res: Response) {
         UserServices.update(req, res);
     }
+    // update(req: Request, res: Response) {
+    //     UserServices.
+    // }
 })();

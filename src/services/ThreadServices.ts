@@ -46,6 +46,25 @@ export default new (class ThreadServices {
         }
     }
 
+    async findByUser(req: Request, res: Response): Promise<Response> {
+        try {
+            // const id = res.locals.loginSession.user.id;
+            // console.log("id user", id);
+
+            const threadsByUser = await this.ThreadRepository.createQueryBuilder("thread")
+                .leftJoin("thread.user", "user")
+                .addSelect(["user.id", "user.username", "user.full_name", "user.email", "user.bio", "user.image"])
+                .orderBy("thread.id", "DESC")
+                .where("user.id = :id", { id: 12 })
+                .getMany();
+
+            return res.status(200).json({ message: "succes find thread by user", threadsByUser });
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ message: "Error while find threads by user login" });
+        }
+    }
+
     async findOne(req: Request, res: Response): Promise<Response> {
         try {
             const id = Number(req.params.id);
