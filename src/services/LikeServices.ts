@@ -25,7 +25,7 @@ export default new (class LikeServices {
 
     async create(req: Request, res: Response): Promise<Response> {
         try {
-            const data = req.body;
+            const data = req.body; //threadId
             const userId = res.locals.loginSession.user.id;
 
             const isLiked = await this.LikeRepository.createQueryBuilder("like").where("like.user = :userId", { userId }).andWhere("like.thread = :threadId", { threadId: data.threadId }).getOne();

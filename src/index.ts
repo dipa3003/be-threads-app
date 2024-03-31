@@ -4,6 +4,7 @@ import * as cors from "cors";
 import router from "./route";
 import cloudinary from "./libs/cloudinary";
 import "dotenv/config";
+import { redisClient } from "./libs/redis";
 
 AppDataSource.initialize()
     .then(async () => {
@@ -15,6 +16,11 @@ AppDataSource.initialize()
         app.use("/api", router);
         cloudinary.upload();
 
-        app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+        redisClient.on("error", (err) => console.log("Redis Client Error", err));
+
+        app.listen(PORT, async () => {
+            await redisClient.connect();
+            console.log(`Server running on port ${PORT}`);
+        });
     })
     .catch((error) => console.log(error));

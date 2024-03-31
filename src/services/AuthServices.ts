@@ -62,7 +62,7 @@ export default new (class AuthServices {
                 id: isLogin.id,
             });
 
-            const token = jwt.sign({ user }, process.env.SECRET_KEY_JWT, { expiresIn: "1h" });
+            const token = jwt.sign({ user }, process.env.SECRET_KEY_JWT, { expiresIn: "2h" });
 
             return res.status(200).json({ message: "success login", user, token });
         } catch (error) {
