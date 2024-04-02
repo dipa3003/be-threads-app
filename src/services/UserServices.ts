@@ -1,4 +1,4 @@
-import { Repository } from "typeorm";
+import { In, Not, Repository } from "typeorm";
 import { User } from "../entity/User";
 import { AppDataSource } from "../data-source";
 import { Request, Response } from "express";
@@ -44,6 +44,41 @@ export default new (class UserServices {
                 .getOne();
 
             return res.status(200).json(user);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    async findSuggestUser(req: Request, res: Response): Promise<Response> {
+        try {
+            const userId = res.locals.loginSession.user.id;
+
+            const user = await this.UserRepository.createQueryBuilder("user")
+                .select(["user.id", "user.username"])
+                .leftJoinAndSelect("user.follower", "following")
+                .leftJoinAndSelect("user.following", "follower")
+                .leftJoinAndSelect("follower.follower", "followerUser")
+                .loadRelationCountAndMap("user.following_count", "user.following")
+                .loadRelationCountAndMap("user.follower_count", "user.follower")
+                .where("user.id= :id", { id: userId })
+                .getOne();
+
+            const idFollowings = user.following.map((item) => item.follower.id);
+            console.log("idFollowings:", idFollowings);
+
+            let suggestUser = await this.UserRepository.find({
+                where: {
+                    id: Not(In([userId, ...idFollowings])),
+                },
+                // take: 2,
+            });
+
+            for (let i = suggestUser.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1)); // Generate random index
+                [suggestUser[i], suggestUser[j]] = [suggestUser[j], suggestUser[i]]; // Swap elements
+            }
+
+            return res.status(200).json(suggestUser);
         } catch (error) {
             console.log(error);
         }

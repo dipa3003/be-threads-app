@@ -32,6 +32,7 @@ router.get("/follow", multer.any(), FollowControllers.getFollow);
 
 router.get("/users", UserControllers.find);
 router.get("/users/:id", UserControllers.findOne);
+router.get("/suggestUser", Auth.Authentication, UserControllers.findSuggestUser);
 router.patch("/users", Auth.Authentication, UploadFile.upload("image"), UserControllers.update);
 
 router.post("/register", UploadFile.upload("image"), AuthControllers.register);

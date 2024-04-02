@@ -11,7 +11,7 @@ export default new (class UserControllers {
     update(req: Request, res: Response) {
         UserServices.update(req, res);
     }
-    // update(req: Request, res: Response) {
-    //     UserServices.
-    // }
+    findSuggestUser(req: Request, res: Response) {
+        UserServices.findSuggestUser(req, res);
+    }
 })();
