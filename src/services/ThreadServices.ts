@@ -45,7 +45,7 @@ export default new (class ThreadServices {
                 const dataFromDB = JSON.stringify(dataThreads);
 
                 data = dataFromDB;
-                await redisClient.set("threads", dataFromDB);
+                await redisClient.setEx("threads", 86400, dataFromDB);
                 // return res.status(200).json(dataThreads);
             }
 
@@ -118,6 +118,7 @@ export default new (class ThreadServices {
             };
 
             const response = await this.ThreadRepository.insert(newData);
+            await redisClient.del("threads");
 
             return res.status(201).json({ message: "success", response });
         } catch (error) {

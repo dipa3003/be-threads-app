@@ -5,6 +5,7 @@ import { Request, Response } from "express";
 import { CreateReplySchema } from "../utils/validator/ReplyValidator";
 import cloudinary from "../libs/cloudinary";
 import deleteTempFile from "../utils/delateFile/delateTempFile";
+import { redisClient } from "../libs/redis";
 
 export default new (class ReplyServices {
     private readonly ReplyRepository: Repository<Reply> = AppDataSource.getRepository(Reply);
@@ -53,17 +54,24 @@ export default new (class ReplyServices {
         try {
             const data = req.body;
             data.userId = res.locals.loginSession.user.id;
-            data.image = res.locals.filename;
+            let image = null;
+
+            if (res.locals.filename) {
+                data.image = res.locals.filename;
+            }
 
             const { error, value } = CreateReplySchema.validate(data);
             if (error) return res.status(400).json({ message: error.message });
             console.log("value validator:", value);
 
-            const cloudinary_reply_img = await cloudinary.destination(value.image);
-            await deleteTempFile();
+            if (req.file) {
+                // const cloudinary_reply_img = await cloudinary.destination(value.image)
+                image = await cloudinary.destination(value.image);
+                await deleteTempFile();
+            }
 
             const newReply = {
-                image: cloudinary_reply_img,
+                image: image,
                 content: value.content,
                 created_at: new Date(),
                 user: value.userId,
@@ -71,6 +79,7 @@ export default new (class ReplyServices {
             };
 
             const response = await this.ReplyRepository.insert(newReply);
+            await redisClient.del("threads");
 
             return res.status(200).json({ message: "success create a reply", response });
         } catch (error) {

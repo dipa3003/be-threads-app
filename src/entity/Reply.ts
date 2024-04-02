@@ -7,10 +7,10 @@ export class Reply {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
+    @Column({ nullable: true })
     image: string;
 
-    @Column()
+    @Column({ nullable: true })
     content: string;
 
     @Column()

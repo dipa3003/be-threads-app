@@ -11,7 +11,7 @@ export default new (class FollowServices {
             const id_to_follow = req.params.id;
             const userId = res.locals.loginSession.user.id;
 
-            const checkUser = await this.FollowRepository.createQueryBuilder("follow").where("follow.following = :followingId", { followingId: id_to_follow }).andWhere("follow.follower = :followerId", { followerId: userId }).getOne();
+            const checkUser = await this.FollowRepository.createQueryBuilder("follow").where("follow.follower = :followingId", { followingId: id_to_follow }).andWhere("follow.following = :followerId", { followerId: userId }).getOne();
 
             if (checkUser) {
                 const response = await this.FollowRepository.delete({ id: checkUser.id });
@@ -23,7 +23,7 @@ export default new (class FollowServices {
 
             const response = await this.FollowRepository.createQueryBuilder("follow")
                 .insert()
-                .values({ following: () => id_to_follow, follower: () => userId, created_at: new Date() })
+                .values({ follower: () => id_to_follow, following: () => userId, created_at: new Date() })
                 .execute();
 
             return res.status(200).json({ message: "success follow a user", id_to_follow, userId, response });

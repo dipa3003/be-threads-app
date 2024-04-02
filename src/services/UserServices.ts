@@ -14,8 +14,8 @@ export default new (class UserServices {
         try {
             const users = await this.UserRepository.createQueryBuilder("user")
                 .select(["user.id", "user.username", "user.full_name", "user.email", "user.bio", "user.image"])
-                .leftJoinAndSelect("user.follower", "follower")
-                .leftJoinAndSelect("user.following", "following")
+                .leftJoinAndSelect("user.following", "follower")
+                .leftJoinAndSelect("user.follower", "following")
                 .loadRelationCountAndMap("user.following_count", "user.following")
                 .loadRelationCountAndMap("user.follower_count", "user.follower")
                 .take(5)
@@ -35,10 +35,11 @@ export default new (class UserServices {
 
             const user = await this.UserRepository.createQueryBuilder("user")
                 .select(["user.id", "user.username", "user.full_name", "user.email", "user.bio", "user.image"])
-                .leftJoinAndSelect("user.following", "follower")
                 .leftJoinAndSelect("user.follower", "following")
-                .loadRelationCountAndMap("user.following_count", "user.follower")
-                .loadRelationCountAndMap("user.follower_count", "user.following")
+                .leftJoinAndSelect("user.following", "follower")
+                .leftJoinAndSelect("follower.follower", "followerUser")
+                .loadRelationCountAndMap("user.following_count", "user.following")
+                .loadRelationCountAndMap("user.follower_count", "user.follower")
                 .where("user.id= :id", { id: userId })
                 .getOne();
 

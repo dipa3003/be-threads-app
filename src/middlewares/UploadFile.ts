@@ -17,7 +17,10 @@ export default new (class UploadFile {
         return (req: Request, res: Response, next: NextFunction) => {
             uploadFile.single(fieldName)(req, res, (error: any) => {
                 if (error) return res.status(400).json({ message: "Error while process handle upload image file", error });
-                res.locals.filename = req.file.filename;
+
+                if (req.file) {
+                    res.locals.filename = req.file.filename;
+                }
                 next();
             });
         };

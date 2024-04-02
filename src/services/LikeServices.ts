@@ -2,6 +2,7 @@ import { Repository } from "typeorm";
 import { Like } from "../entity/Like";
 import { AppDataSource } from "../data-source";
 import { Request, Response } from "express";
+import { redisClient } from "../libs/redis";
 
 export default new (class LikeServices {
     private readonly LikeRepository: Repository<Like> = AppDataSource.getRepository(Like);
@@ -32,6 +33,9 @@ export default new (class LikeServices {
 
             if (isLiked) {
                 const unLiked = await this.LikeRepository.delete(isLiked.id);
+                if (unLiked) {
+                    await redisClient.del("threads");
+                }
                 return res.status(200).json({ message: "success unlike a thread", unLiked });
             }
 
@@ -42,6 +46,8 @@ export default new (class LikeServices {
             };
 
             const response = await this.LikeRepository.insert(dataLike);
+            await redisClient.del("threads");
+
             return res.status(200).json({ message: "success like a thread ", response });
         } catch (error) {
             console.log(error);
