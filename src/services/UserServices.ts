@@ -6,6 +6,7 @@ import cloudinary from "../libs/cloudinary";
 import deleteTempFile from "../utils/delateFile/delateTempFile";
 import * as bcrypt from "bcrypt";
 import { CreateUpdateUserSchema } from "../utils/validator/UserValidator";
+import { redisClient } from "../libs/redis";
 
 export default new (class UserServices {
     private readonly UserRepository: Repository<User> = AppDataSource.getRepository(User);
@@ -64,8 +65,6 @@ export default new (class UserServices {
                 .getOne();
 
             const idFollowings = user.following.map((item) => item.follower.id);
-            console.log("idFollowings:", idFollowings);
-
             let suggestUser = await this.UserRepository.find({
                 where: {
                     id: Not(In([userId, ...idFollowings])),
@@ -89,6 +88,8 @@ export default new (class UserServices {
             const userId = res.locals.loginSession.user.id;
             const data = req.body;
             data.image = res.locals.filename;
+
+            console.log("data update:", data);
 
             // const checkUser = await this.UserRepository.existsBy({ id: userId });
             // if (checkUser) return res.status(400).json({ message: `${data.username} has already register` });
@@ -124,6 +125,7 @@ export default new (class UserServices {
             }
 
             const response = await this.UserRepository.save(old_data_user);
+            await redisClient.del("threads");
 
             return res.status(201).json({ response });
         } catch (error) {

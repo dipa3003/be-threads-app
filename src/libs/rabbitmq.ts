@@ -1,4 +1,5 @@
 import * as amqp from "amqplib";
+import { redisClient } from "./redis";
 
 export default new (class RabbitMQConfig {
     async sendToMessage(queueName: string, payload: any): Promise<boolean> {
@@ -9,6 +10,7 @@ export default new (class RabbitMQConfig {
             await channel.assertQueue(queueName);
 
             channel.sendToQueue(queueName, Buffer.from(JSON.stringify(payload)));
+            await redisClient.del("threads");
 
             await channel.close();
             await connection.close();

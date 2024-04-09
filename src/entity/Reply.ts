@@ -22,6 +22,9 @@ export class Reply {
     })
     user: User;
 
-    @ManyToOne(() => Thread, (thread) => thread.replies)
+    @ManyToOne(() => Thread, (thread) => thread.replies, {
+        onDelete: "CASCADE",
+        onUpdate: "CASCADE",
+    })
     thread: Thread;
 }

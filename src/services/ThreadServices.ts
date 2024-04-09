@@ -44,8 +44,8 @@ export default new (class ThreadServices {
 
                 const dataFromDB = JSON.stringify(dataThreads);
 
-                data = dataFromDB;
-                await redisClient.setEx("threads", 86400, dataFromDB);
+                data = JSON.stringify(dataThreads);
+                await redisClient.setEx("threads", 3600, dataFromDB);
                 // return res.status(200).json(dataThreads);
             }
 
@@ -59,19 +59,49 @@ export default new (class ThreadServices {
     async findByUser(req: Request, res: Response): Promise<Response> {
         try {
             // const id = res.locals.loginSession.user.id;
-            // console.log("id user", id);
+            const id = Number(req.params.id);
+            console.log("id user:", id);
+            // let data = await redisClient.get("threadsByUser");
 
             const threadsByUser = await this.ThreadRepository.createQueryBuilder("thread")
                 .leftJoin("thread.user", "user")
                 .addSelect(["user.id", "user.username", "user.full_name", "user.email", "user.bio", "user.image"])
+                .leftJoinAndSelect("thread.likes", "likes")
+                .leftJoinAndSelect("thread.replies", "replies")
+                .leftJoin("replies.user", "userreplies")
+                .addSelect(["userreplies.id", "userreplies.username", "userreplies.full_name"])
+                .loadRelationCountAndMap("thread.likes_count", "thread.likes")
+                .loadRelationCountAndMap("thread.replies_count", "thread.replies")
                 .orderBy("thread.id", "DESC")
-                .where("user.id = :id", { id: 16 })
+                .where("user.id = :id", { id })
+                // .where("thread.user = :id", { id })
                 .getMany();
 
-            return res.status(200).json({ message: "succes find thread by user", threadsByUser });
+            const response = threadsByUser.map(async (thread) => await LikeServices.isLikedUser(id, thread.id));
+            const likedByUser = await Promise.all(response);
+
+            let dataThreads = [];
+            for (let i = 0; i < threadsByUser.length; i++) {
+                dataThreads.push({
+                    id: threadsByUser[i].id,
+                    content: threadsByUser[i].content,
+                    created_at: threadsByUser[i].created_at,
+                    image: threadsByUser[i].image,
+                    user: threadsByUser[i].user,
+                    likes_count: threadsByUser[i].likes.length,
+                    replies_count: threadsByUser[i].replies.length,
+                    isLiked: likedByUser[i],
+                });
+            }
+
+            // const dataFromDB = JSON.stringify(dataThreads);
+            // data = dataFromDB;
+            // await redisClient.setEx("threadsByUser", 3600, dataFromDB);
+
+            return res.status(200).json(dataThreads);
         } catch (error) {
             console.log(error);
-            return res.status(500).json({ message: "Error while find threads by user login" });
+            return res.status(500).json({ message: "Error while find threads by user login", error });
         }
     }
 
@@ -85,7 +115,7 @@ export default new (class ThreadServices {
                 .leftJoinAndSelect("thread.likes", "likes")
                 .leftJoinAndSelect("thread.replies", "replies")
                 .leftJoin("replies.user", "userreplies")
-                .addSelect(["userreplies.id", "userreplies.username", "userreplies.full_name"])
+                .addSelect(["userreplies.id", "userreplies.username", "userreplies.full_name", "userreplies.image"])
                 .loadRelationCountAndMap("thread.likes_count", "thread.likes")
                 .loadRelationCountAndMap("thread.replies_count", "thread.replies")
                 .where("thread.id = :id", { id })
@@ -103,17 +133,25 @@ export default new (class ThreadServices {
             const data = req.body;
             data.userId = res.locals.loginSession.user.id;
             data.image = res.locals.filename;
+            let content = null;
+            let image = null;
 
             const { error, value } = CreateThreadSchema.validate(data);
             if (error) return res.status(400).json({ message: error.message });
 
-            const cloudinaryImg = await cloudinary.destination(value.image);
-            await deleteTempFile();
+            if (data.content) {
+                content = value.content;
+            }
+            if (data.image) {
+                const cloudinaryImg = await cloudinary.destination(value.image);
+                await deleteTempFile();
+                image = cloudinaryImg;
+            }
 
             const newData = {
-                content: value.content,
+                content: content,
                 user: value.userId,
-                image: cloudinaryImg,
+                image: image,
                 created_at: new Date(),
             };
 
@@ -161,6 +199,7 @@ export default new (class ThreadServices {
             await cloudinary.delete(findThread.image);
 
             const response = await this.ThreadRepository.delete(id);
+            await redisClient.del("threads");
 
             return res.status(200).json({ message: "success", response });
         } catch (error) {

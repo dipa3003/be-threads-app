@@ -20,6 +20,7 @@ export default new (class CloudinaryConfig {
 
     async delete(image: string) {
         try {
+            if (image === null) return;
             const splitImageName = image.split("/");
             let img_public_id = splitImageName[splitImageName.length - 1];
             img_public_id = img_public_id.slice(0, -4);

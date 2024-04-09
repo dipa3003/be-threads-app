@@ -7,6 +7,7 @@ import * as bcrypt from "bcrypt";
 import * as jwt from "jsonwebtoken";
 import cloudinary from "../libs/cloudinary";
 import deleteTempFile from "../utils/delateFile/delateTempFile";
+import { redisClient } from "../libs/redis";
 
 export default new (class AuthServices {
     private readonly AuthRepository: Repository<User> = AppDataSource.getRepository(User);
@@ -63,6 +64,7 @@ export default new (class AuthServices {
             });
 
             const token = jwt.sign({ user }, process.env.SECRET_KEY_JWT, { expiresIn: "2h" });
+            await redisClient.del("threads");
 
             return res.status(200).json({ message: "success login", user, token });
         } catch (error) {

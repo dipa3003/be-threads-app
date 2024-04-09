@@ -10,8 +10,8 @@ export default new (class ThreadControllers {
         ThreadServices.findOne(req, res);
     }
     create(req: Request, res: Response) {
-        // ThreadServices.create(req, res);
-        ThreadQueue.create(req, res);
+        ThreadServices.create(req, res);
+        // ThreadQueue.create(req, res);
     }
     update(req: Request, res: Response) {
         ThreadServices.update(req, res);

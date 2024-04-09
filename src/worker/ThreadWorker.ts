@@ -4,6 +4,7 @@ import deleteTempFile from "../utils/delateFile/delateTempFile";
 import { AppDataSource } from "../data-source";
 import { Thread } from "../entity/Thread";
 import { Repository } from "typeorm";
+import { redisClient } from "../libs/redis";
 
 export default new (class ThreadWorker {
     private readonly ThreadWorker: Repository<Thread> = AppDataSource.getRepository(Thread);
@@ -17,12 +18,18 @@ export default new (class ThreadWorker {
                     try {
                         const data = JSON.parse(message.content.toString());
                         console.log(data);
+                        let content = null;
+
+                        if (data.content) {
+                            content = data.content;
+                        }
 
                         const cloudinaryImg = await cloudinary.destination(data.image);
                         await deleteTempFile();
+                        // await redisClient.del("threads");
 
                         const obj = this.ThreadWorker.create({
-                            content: data.content,
+                            content: content,
                             image: cloudinaryImg,
                             user: data.user,
                             created_at: data.created_at,
@@ -31,7 +38,6 @@ export default new (class ThreadWorker {
                         console.log("new thread:", obj);
 
                         await this.ThreadWorker.insert(obj);
-
                         console.log("Thread is created!");
                         channel.ack(message);
                     } catch (error) {

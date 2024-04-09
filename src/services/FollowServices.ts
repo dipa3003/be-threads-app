@@ -37,9 +37,9 @@ export default new (class FollowServices {
         try {
             const userId = req.query.userId;
 
-            const follower = await this.FollowRepository.createQueryBuilder("follow").leftJoinAndSelect("follow.follower", "follower").where("follow.follower= :id", { id: userId }).getMany();
+            const follower = await this.FollowRepository.createQueryBuilder("follow").leftJoinAndSelect("follow.following", "follower").where("follow.follower= :id", { id: userId }).getMany();
 
-            const following = await this.FollowRepository.createQueryBuilder("follow").leftJoinAndSelect("follow.following", "following").where("follow.following= :id", { id: userId }).getMany();
+            const following = await this.FollowRepository.createQueryBuilder("follow").leftJoinAndSelect("follow.follower", "following").where("follow.following= :id", { id: userId }).getMany();
 
             return res.status(200).json({ follower, following });
         } catch (error) {
