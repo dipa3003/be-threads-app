@@ -46,7 +46,6 @@ export default new (class ThreadServices {
 
                 data = JSON.stringify(dataThreads);
                 await redisClient.setEx("threads", 3600, dataFromDB);
-                // return res.status(200).json(dataThreads);
             }
 
             return res.status(200).json(JSON.parse(data));
@@ -60,7 +59,6 @@ export default new (class ThreadServices {
         try {
             // const id = res.locals.loginSession.user.id;
             const id = Number(req.params.id);
-            console.log("id user:", id);
             // let data = await redisClient.get("threadsByUser");
 
             const threadsByUser = await this.ThreadRepository.createQueryBuilder("thread")
@@ -170,14 +168,12 @@ export default new (class ThreadServices {
             const id = Number(req.params.id);
             const data = req.body;
             data.userId = res.locals.loginSession.user.id;
-            console.log("id thread", id);
 
             const checkThread = await this.ThreadRepository.existsBy({ id: id });
             if (!checkThread) return res.status(404).json({ message: "Thread not found" });
 
             const { value, error } = CreateThreadSchema.validate(data);
             if (error) return res.status(400).json({ error: error.message });
-            console.log("value validate:", value);
 
             const updateThread = {
                 content: value.content,

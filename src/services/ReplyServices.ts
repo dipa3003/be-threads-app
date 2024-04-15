@@ -81,7 +81,7 @@ export default new (class ReplyServices {
             const response = await this.ReplyRepository.insert(newReply);
             await redisClient.del("threads");
 
-            return res.status(200).json({ message: "success create a reply", response });
+            return res.status(201).json({ message: "success create a reply", response });
         } catch (error) {
             console.log(error);
             return res.status(404).json({ message: "Error while find all reply", error });
